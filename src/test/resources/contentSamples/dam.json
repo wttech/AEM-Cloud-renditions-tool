@@ -1,0 +1,63 @@
+{
+  "jcr:content": {
+    "jcr:primaryType": "nt:unstructured",
+    "processingProfile": "/conf/global/settings/dam/processing/this-should-not-be-reached"
+  },
+  "dam": {
+    "jcr:primaryType": "sling:Folder",
+    "jcr:content": {
+      "jcr:primaryType": "nt:unstructured",
+      "jcr:title": "Assets",
+      "processingProfile": "/conf/global/settings/dam/processing/profile-from-repo2"
+    },
+    "test": {
+      "jcr:primaryType": "sling:Folder",
+      "test2": {
+        "jcr:primaryType": "sling:Folder",
+        "jcr:content": {
+          "jcr:primaryType": "nt:unstructured",
+          "jcr:title": "test2"
+        },
+        "test3": {
+          "jcr:primaryType": "sling:Folder",
+          "jcr:content": {
+            "jcr:primaryType": "nt:unstructured",
+            "jcr:title": "test3"
+          },
+          "43.png": {
+            "jcr:primaryType": "dam:Asset"
+          }
+        }
+      },
+      "jcr:content": {
+        "jcr:primaryType": "nt:unstructured",
+        "jcr:title": "test",
+        "processingProfile": "/conf/global/settings/dam/processing/profile-from-repo"
+      }
+    },
+    "test-evil": {
+      "jcr:primaryType": "sling:Folder",
+      "test2": {
+        "jcr:primaryType": "sling:Folder",
+        "jcr:content": {
+          "jcr:primaryType": "nt:unstructured",
+          "jcr:title": "test2",
+          "processingProfile": "/conf/global/settings/dam/processing/im-evil"
+        },
+        "test3": {
+          "jcr:primaryType": "sling:Folder",
+          "jcr:content": {
+            "jcr:primaryType": "nt:unstructured",
+            "jcr:title": "test3"
+          }
+        }
+      },
+      "jcr:content": {
+        "jcr:primaryType": "nt:unstructured",
+        "jcr:title": "test",
+        "sourcing": "false",
+        "processingProfile": "/conf/global/settings/dam/processing/im-evil2"
+      }
+    }
+  }
+}

@@ -1,0 +1,264 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright 2020 Cognifide
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~     http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<jcr:root xmlns:sling="http://sling.apache.org/jcr/sling/1.0" xmlns:cq="http://www.day.com/jcr/cq/1.0" xmlns:jcr="http://www.jcp.org/jcr/1.0" xmlns:nt="http://www.jcp.org/jcr/nt/1.0"
+    jcr:primaryType="cq:Page">
+    <jcr:content
+        cq:tags="[workflow:dam,workflow:wcm]"
+        cq:template="/libs/cq/workflow/templates/model"
+        cq:workflowDetailsPage="/mnt/overlay/dam/gui/content/s7dam/jobmonitoring/encodingjobdetails.html${item}?item=${payload}"
+        jcr:description="This workflow manages the update of assets"
+        jcr:primaryType="cq:PageContent"
+        jcr:title="DAM Update Asset"
+        sling:resourceType="cq/workflow/components/pages/model"
+        transient="true">
+        <flow
+            jcr:primaryType="nt:unstructured"
+            sling:resourceType="foundation/components/parsys">
+            <process
+                jcr:description="This process checks if the complete update process has to be executed. The workflow should terminate  eg. the asset got restored right before to make sure that trhe restored content is preserved."
+                jcr:primaryType="nt:unstructured"
+                jcr:title="Continue updating?"
+                sling:resourceType="cq/workflow/components/model/process">
+                <metaData
+                    jcr:primaryType="nt:unstructured"
+                    PROCESS="com.day.cq.dam.core.process.GateKeeperProcess"
+                    PROCESS_ARGS=""
+                    PROCESS_AUTO_ADVANCE="true"/>
+            </process>
+            <metadataprocessorpro
+                jcr:description="A process to extract and import metadata, create references and apply processing profile, if the payload of the step is an asset or part of an asset."
+                jcr:primaryType="nt:unstructured"
+                jcr:title="Metadata Processor"
+                sling:resourceType="dam/components/workflow/metadataprocessorprocess">
+                <metaData
+                    jcr:primaryType="nt:unstructured"
+                    PROCESS="com.day.cq.dam.core.process.MetadataProcessorProcess"
+                    PROCESS_AUTO_ADVANCE="true"/>
+            </metadataprocessorpro>
+            <process2
+                jcr:description="Extracts video poster frame"
+                jcr:primaryType="nt:unstructured"
+                jcr:title="FFmpeg thumbnails"
+                sling:resourceType="cq/workflow/components/model/process">
+                <metaData
+                    jcr:primaryType="nt:unstructured"
+                    PROCESS="com.day.cq.dam.video.FFMpegThumbnailProcess"
+                    PROCESS_ARGS="count:4,index:2,[140:100],[48:48],[319:319]"
+                    PROCESS_AUTO_ADVANCE="true"/>
+            </process2>
+            <commandlineprocess
+                jcr:description="Generate thumbnails for eps files using image magick"
+                jcr:primaryType="nt:unstructured"
+                jcr:title="EPS thumbnails (powered by ImageMagick)"
+                sling:resourceType="dam/components/workflow/commandlineprocess"
+                PROCESS="com.day.cq.dam.core.process.CommandLineProcess"
+                PROCESS_AUTO_ADVANCE="true">
+                <metaData
+                    jcr:primaryType="nt:unstructured"
+                    COMMANDS="convert -define jpeg:size=319x319 ${filename} -thumbnail 319x319 cq5dam.thumbnail.319.319.png"
+                    MIME_TYPES="[image/eps,image/x-eps,application/postscript,application/eps,application/x-eps]"
+                    PROCESS="com.day.cq.dam.core.process.CommandLineProcess"
+                    PROCESS_AUTO_ADVANCE="true"
+                    THUMBNAILS="[48:48,140:100,319:319]"/>
+            </commandlineprocess>
+            <process3
+                jcr:description="Create web enabled video formats"
+                jcr:primaryType="nt:unstructured"
+                jcr:title="FFmpeg transcoding"
+                sling:resourceType="cq/workflow/components/model/process">
+                <metaData
+                    jcr:primaryType="nt:unstructured"
+                    PROCESS="com.day.cq.dam.video.FFMpegTranscodeProcess"
+                    PROCESS_ARGS="profile:format_ogg,profile:format_aac,profile:format_flv,profile:format_aac_ie"
+                    PROCESS_AUTO_ADVANCE="true"/>
+            </process3>
+            <inddmediaextractproc
+                jcr:description="Indesign Media Extraction"
+                jcr:primaryType="nt:unstructured"
+                jcr:title="Media Extraction"
+                sling:resourceType="dam/components/workflow/inddmediaextractprocess"
+                advanceOnTimeout="true"
+                EXTERNAL_PROCESS="com.day.cq.dam.indd.process.INDDMediaExtractProcess"
+                period="10"
+                PROCESS_ARGS="test"
+                PROCESS_AUTO_ADVANCE="true"
+                timeout="3600">
+                <metaData
+                    jcr:primaryType="nt:unstructured"
+                    advanceOnTimeout="true"
+                    EXTERNAL_PROCESS="com.day.cq.dam.indd.process.INDDMediaExtractProcess"
+                    libPath="dam/indesign/scripts/cq-lib.jsx"
+                    linkPath="/Links"
+                    mimeTypes="[application/x-indesign,application/x-indesign-snippet]"
+                    period="10"
+                    PROCESS_ARGS="test"
+                    PROCESS_AUTO_ADVANCE="true"
+                    scriptPaths="[dam/indesign/scripts/ThumbnailExport.jsx,dam/indesign/scripts/XHTMLExport.jsx,dam/indesign/scripts/IDMLExport.jsx,dam/indesign/scripts/JPEGPagesExport.jsx,dam/indesign/scripts/XMLExport.jsx,dam/indesign/scripts/PDFExport.jsx]"
+                    timeout="3600"/>
+            </inddmediaextractproc>
+            <process6
+                jcr:description="InDesign Page Extraction"
+                jcr:primaryType="nt:unstructured"
+                jcr:title="Page Extraction"
+                sling:resourceType="dam/components/workflow/inddpageextractprocess">
+                <metaData
+                    jcr:primaryType="nt:unstructured"
+                    extractionHandler="com.day.cq.dam.indd.impl.idml.IDMLExtractionHandler"
+                    pageDesign=""
+                    pageTemplate=""
+                    pageTitle="IDML Extraction"
+                    PROCESS="com.day.cq.dam.indd.process.INDDPageExtractProcess"
+                    PROCESS_AUTO_ADVANCE="true"/>
+            </process6>
+            <createpdfpreviewproc
+                jcr:description="Rasterize PDF and Adobe Illustrator documents to a preview image rendition"
+                jcr:primaryType="nt:unstructured"
+                jcr:title="Rasterize PDF/AI Image Preview Rendition"
+                sling:resourceType="dam/components/workflow/createpdfpreviewprocess"
+                PROCESS="com.day.cq.dam.core.process.CreatePdfPreviewProcess"
+                PROCESS_AUTO_ADVANCE="true">
+                <metaData
+                    jcr:primaryType="nt:unstructured"
+                    MAX_HEIGHT="2048"
+                    MAX_WIDTH="2048"
+                    MIME_TYPES="[application/pdf,application/postscript,application/illustrator]"
+                    PROCESS="com.day.cq.dam.core.process.CreatePdfPreviewProcess"
+                    PROCESS_AUTO_ADVANCE="true"
+                    RESOLUTION="72"/>
+            </createpdfpreviewproc>
+            <dmimageprocess
+                jcr:description="Processes assets for use with Dynamic Media Image Services"
+                jcr:primaryType="nt:unstructured"
+                jcr:title="Dynamic Media Process Image Assets"
+                sling:resourceType="dam/components/s7imaging/dmimageprocess">
+                <metaData
+                    jcr:primaryType="nt:unstructured"
+                    CONFIGS="[140:100:false,48:48:false,319:319:false]"
+                    HEIGHT="1280"
+                    MIME_TYPE="image/jpeg"
+                    PROCESS="com.adobe.cq.dam.dm.process.workflow.DMImageProcess"
+                    PROCESS_AUTO_ADVANCE="true"
+                    QUALITY="90"
+                    WIDTH="1280"/>
+            </dmimageprocess>
+            <thumbnailprocess
+                jcr:description="This process will create one or more thumbnails for the asset, create web enabled rendition and update folder thumbnail."
+                jcr:primaryType="nt:unstructured"
+                jcr:title="Process Thumbnails"
+                sling:resourceType="dam/components/workflow/thumbnailprocess"
+                PROCESS="com.day.cq.dam.core.impl.process.ThumbnailProcess"
+                PROCESS_AUTO_ADVANCE="true">
+                <metaData
+                    jcr:primaryType="nt:unstructured"
+                    CONFIGS="[140:100:false,48:48:false,319:319:false]"
+                    CREATE_FPO_MIMETYPES="[image/pjpeg,image/jpeg,image/jpg,image/gif,image/x-png,image/tiff,image/png,application/x-photoshop,application/photoshop,image/vnd.adobe.photoshop,application/vnd.adobe.photoshop,image/bmp,image/x-tiff]"
+                    FPO_QUALITY="10"
+                    HEIGHT="1280"
+                    MIME_TYPE="image/jpeg"
+                    MIMETYPE="image/jpeg"
+                    PROCESS="com.day.cq.dam.core.impl.process.ThumbnailProcess"
+                    PROCESS_AUTO_ADVANCE="true"
+                    QUALITY="90"
+                    SKIP="[audio/mpeg,video/(.*)]"
+                    WIDTH="1280"/>
+            </thumbnailprocess>
+            <myCustomProcess
+                jcr:primaryType="nt:unstructured"
+                jcr:title="Generate Cloud Renditions"
+                sling:resourceType="cq/workflow/components/model/process">
+                <metaData
+                    jcr:primaryType="nt:unstructured"
+                    PROCESS="com.mysite.local.tools.workflow.LocalRenditionMakerProcess"
+                    PROCESS_AUTO_ADVANCE="true"/>
+            </myCustomProcess>
+            <createwebenabledimag
+                jcr:description="A process to create a web enabled representation from an asset. Provides various configuration arguments."
+                jcr:primaryType="nt:unstructured"
+                jcr:title="Create Web Enabled Image"
+                sling:resourceType="dam/components/workflow/createwebenabledimage">
+                <metaData
+                    jcr:primaryType="nt:unstructured"
+                    HEIGHT="1280"
+                    KEEP_FORMAT_LIST="image/*"
+                    MIME_TYPE="image/jpeg"
+                    PROCESS="com.day.cq.dam.core.process.CreateWebEnabledImageProcess"
+                    PROCESS_AUTO_ADVANCE="true"
+                    QUALITY="90"
+                    SKIP="image/bmp"
+                    WIDTH="1920"/>
+            </createwebenabledimag>
+            <deleteimagepreviewpr
+                jcr:description="Process to delete the image preview rendition"
+                jcr:primaryType="nt:unstructured"
+                jcr:title="Delete Image Preview Rendition"
+                sling:resourceType="dam/components/workflow/deleteimagepreviewprocess">
+                <metaData
+                    jcr:primaryType="nt:unstructured"
+                    PROCESS="com.day.cq.dam.core.process.DeleteImagePreviewProcess"
+                    PROCESS_AUTO_ADVANCE="true"/>
+            </deleteimagepreviewpr>
+            <scene7upload
+                jcr:description="Batch Upload assets to configured remote Scene7 service for Dynamic Media delivery"
+                jcr:primaryType="nt:unstructured"
+                jcr:title="Scene7 Batch Upload"
+                sling:resourceType="dam/components/scene7/scene7batchupload">
+                <metaData
+                    jcr:primaryType="nt:unstructured"
+                    advanceOnTimeout="true"
+                    EXTERNAL_PROCESS="com.day.cq.dam.scene7.impl.process.Scene7BatchUploadProcess"
+                    period="30"
+                    PROCESS_AUTO_ADVANCE="true"
+                    timeout="3600"/>
+            </scene7upload>
+            <scene7directbinaryaccessprocess
+                jcr:description="Upload assets to configured remote Scene7 service for Dynamic Media delivery."
+                jcr:primaryType="nt:unstructured"
+                jcr:title="Scene7 Direct Binary Upload"
+                sling:resourceType="dam/components/scene7/scene7upload">
+                <metaData
+                    jcr:primaryType="nt:unstructured"
+                    advanceOnTimeout="true"
+                    EXTERNAL_PROCESS="com.day.cq.dam.scene7.impl.process.DirectBinaryAccessS7UplProcess"
+                    period="30"
+                    PROCESS_AUTO_ADVANCE="true"
+                    timeout="3600"/>
+            </scene7directbinaryaccessprocess>
+            <damupdateassetworkflowcompletedprocess
+                jcr:description="This process will send DamEvent.Type.DAM_UPDATE_ASSET_WORKFLOW_COMPLETED event when DAM update asset workflow is completed"
+                jcr:primaryType="nt:unstructured"
+                jcr:title="DAM Update Asset Workflow Completed"
+                sling:resourceType="dam/components/workflow/damupdateassetworkflowcompletedprocess">
+                <metaData
+                    jcr:primaryType="nt:unstructured"
+                    PROCESS="com.day.cq.dam.core.impl.process.DamUpdateAssetWorkflowCompletedProcess"
+                    PROCESS_AUTO_ADVANCE="true"/>
+            </damupdateassetworkflowcompletedprocess>
+            <sendtransientworkflowcompletedemailprocess
+                jcr:description="This process will send email based on an email template to current user when a transient workflow is completed"
+                jcr:primaryType="nt:unstructured"
+                jcr:title="Send Transient Workflow Completed Email"
+                sling:resourceType="dam/components/workflow/sendtransientworkflowcompletedemailprocess">
+                <metaData
+                    jcr:primaryType="nt:unstructured"
+                    PROCESS="com.day.cq.dam.core.impl.process.SendTransientWorkflowCompletedEmailProcess"
+                    PROCESS_AUTO_ADVANCE="true"
+                    templatePath="dam/workflow/notification/email/transientworkflowcompleted/en.txt"/>
+            </sendtransientworkflowcompletedemailprocess>
+        </flow>
+    </jcr:content>
+</jcr:root>

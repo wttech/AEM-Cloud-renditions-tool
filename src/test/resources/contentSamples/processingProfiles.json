@@ -1,0 +1,80 @@
+{
+  "jcr:primaryType": "nt:folder",
+  "profile-from-repo": {
+    "jcr:primaryType": "cq:Page",
+    "jcr:content": {
+      "jcr:primaryType": "nt:unstructured",
+      "jcr:title": "Profile from repo",
+      "sling:resourceType": "dam/processing/profile"
+    },
+    "large": {
+      "jcr:primaryType": "cq:Page",
+      "jcr:content": {
+        "jcr:primaryType": "nt:unstructured",
+        "jcr:title": "sample.with.dots",
+        "excludeMimeTypes": "",
+        "includeMimeTypes": "image/.*",
+        "fmt": "jpeg",
+        "hei": 1600,
+        "qlt": 85,
+        "wid": 1600,
+        "name": "sample.with.dots.jpeg",
+        "sling:resourceType": "dam/processing/profile/rendition"
+      }
+    },
+    "medium": {
+      "jcr:primaryType": "cq:Page",
+      "jcr:content": {
+        "jcr:primaryType": "nt:unstructured",
+        "jcr:title": "medium",
+        "excludeMimeTypes": "",
+        "includeMimeTypes": "image/.*",
+        "fmt": "jpeg",
+        "hei": 800,
+        "qlt": 85,
+        "wid": 800,
+        "name": "medium.jpeg",
+        "sling:resourceType": "dam/processing/profile/rendition"
+      }
+    }
+  },
+  "profile-from-repo2": {
+    "jcr:primaryType": "cq:Page",
+    "jcr:content": {
+      "jcr:primaryType": "nt:unstructured",
+      "jcr:title": "Profile from repo",
+      "sling:resourceType": "dam/processing/profile"
+    },
+    "large2": {
+      "jcr:primaryType": "cq:Page",
+      "jcr:content": {
+        "jcr:primaryType": "nt:unstructured",
+        "jcr:title": "sample.with.dots",
+        "excludeMimeTypes": "",
+        "includeMimeTypes": "image/.*",
+        "fmt": "jpeg",
+        "hei": 16002,
+        "qlt": 85,
+        "wid": 16002,
+        "name": "sample.with.dots2.jpeg",
+        "sling:resourceType": "dam/processing/profile/rendition"
+      }
+    },
+    "medium2": {
+      "jcr:primaryType": "cq:Page",
+      "jcr:content": {
+        "jcr:primaryType": "nt:unstructured",
+        "jcr:title": "medium",
+        "excludeMimeTypes": "",
+        "includeMimeTypes": "image/.*",
+        "fmt": "jpeg",
+        "hei": 8002,
+        "qlt": 85,
+        "wid": 8002,
+        "name": "medium2.jpeg",
+        "sling:resourceType": "dam/processing/profile/rendition"
+      }
+    }
+  }
+
+}
